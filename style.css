@@ -12,7 +12,6 @@ body {
     overflow-x: hidden;
 }
 
-/* --- CLASS TRANSISI HALAMAN --- */
 .page-view {
     opacity: 0;
     transition: opacity 0.4s ease;
@@ -24,7 +23,6 @@ body {
     pointer-events: auto;
 }
 
-/* --- HALAMAN DEPAN (BERANDA) --- */
 .landing-page {
     min-height: 100vh;
     display: flex;
@@ -77,7 +75,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Sosial Media & Profil */
 .social-links {
     display: flex;
     gap: 15px;
@@ -113,13 +110,11 @@ body {
     fill: #fff;
 }
 
-/* --- TAMPILAN MODE BUKU (READER) --- */
 .reader-container {
     display: none;
     min-height: 100vh;
 }
 
-/* TOP HEADER BAR */
 .top-bar {
     position: fixed;
     top: 0;
@@ -135,7 +130,6 @@ body {
     z-index: 1000;
 }
 
-/* Tombol Bulat Menu */
 .circle-menu-btn {
     background-color: #e0e0e0;
     border: none;
@@ -162,8 +156,6 @@ body {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-
-/* MENU DROPDOWN DARI BAR ATAS */
 .top-menu-dropdown {
     position: fixed;
     top: 60px;
@@ -184,7 +176,6 @@ body {
     display: flex;
 }
 
-/* Fitur 1: Ukuran Teks */
 .menu-section-title {
     font-size: 0.8rem;
     color: #666;
@@ -213,7 +204,6 @@ body {
     background: #333;
 }
 
-/* Fitur 2: Daftar Isi */
 .menu-chapters {
     list-style: none;
     display: grid;
@@ -235,7 +225,6 @@ body {
     font-weight: bold;
 }
 
-/* Fitur 3: Navigasi Home */
 .nav-home-btn {
     color: #4da6ff;
     text-decoration: none;
@@ -243,7 +232,6 @@ body {
     display: inline-block;
 }
 
-/* Overlay */
 .dropdown-overlay {
     display: none;
     position: fixed;
@@ -259,7 +247,6 @@ body {
     display: block;
 }
 
-/* Area Isi Buku */
 .content {
     margin: 0 auto;
     padding: 100px 20px 40px 20px;
@@ -292,7 +279,6 @@ body {
     text-align: justify;
 }
 
-/* Navigasi Bawah */
 .pagination {
     display: flex;
     justify-content: space-between;
