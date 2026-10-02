@@ -1,12 +1,11 @@
 let currentChapter = 1;
 const totalChapters = 4;
-let currentFontSize = 1.1; // Rem
+let currentFontSize = 1.1;
 
 function startReading() {
     const landing = document.getElementById('landingPage');
     const reader = document.getElementById('readerContainer');
 
-    // Fade out Beranda
     landing.classList.remove('active-page');
 
     setTimeout(() => {
@@ -14,7 +13,6 @@ function startReading() {
         reader.style.display = 'block';
         showChapter(1);
 
-        // Force reflow agar animasi berjalan
         void reader.offsetWidth;
         reader.classList.add('active-page');
     }, 400);
@@ -26,7 +24,6 @@ function showLandingPage() {
 
     closeTopMenu();
 
-    // Fade out Reader
     reader.classList.remove('active-page');
 
     setTimeout(() => {
@@ -34,7 +31,6 @@ function showLandingPage() {
         landing.style.display = 'flex';
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Force reflow agar animasi berjalan
         void landing.offsetWidth;
         landing.classList.add('active-page');
     }, 400);
@@ -97,7 +93,6 @@ function closeTopMenu() {
     document.getElementById('overlay').classList.remove('active');
 }
 
-// Fitur Mengubah Ukuran Teks
 function changeFontSize(direction) {
     currentFontSize += direction * 0.1;
     if (currentFontSize < 0.9) currentFontSize = 0.9;
