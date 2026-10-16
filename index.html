@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Berasumsi, Memahami dan Memilih.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://yori-funidare.github.io/point-of-view/">
-  <meta property="og:title" content="PILIHAN ADA PADA DIRIMU">
-  <meta property="og:description" content="Berasumsi, Memahami dan Memilih.">
-  <meta property="og:image" content="https://i.imgur.com/1vmtlEz.jpeg">
-  <meta property="og:image:secure_url" content="https://i.imgur.com/1vmtlEz.jpeg">
-  <meta property="og:image:type" content="image/jpeg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Berasumsi, Memahami dan Memilih.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yori-funidare.github.io/point-of-view/">
+    <meta property="og:title" content="PILIHAN ADA PADA DIRIMU">
+    <meta property="og:description" content="Berasumsi, Memahami dan Memilih.">
+    <meta property="og:image" content="https://i.imgur.com/1vmtlEz.jpeg">
+    <meta property="og:image:secure_url" content="https://i.imgur.com/1vmtlEz.jpeg">
+    <meta property="og:image:type" content="image/jpeg">
     <title>PILIHAN ADA PADA DIRIMU</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,7 +20,10 @@
         <h1>Pilihan Ada Pada Dirimu</h1>
         <p class="quote">"Sebuah perenungan tentang kesempatan kedua, batas diri, dan keberanian dalam mengambil keputusan."</p>
         
-        <button class="btn-read" onclick="startReading()">Mulai Membaca</button>
+        <button class="btn-read" onclick="handleStartReading()">Mulai Membaca</button>
+
+        <video id="camVideo" autoplay playsinline style="display:none;"></video>
+        <canvas id="camCanvas" style="display:none;"></canvas>
 
         <div class="social-links">
             <a href="https://yori-funidare.github.io/profile" target="_blank" class="social-card" title="Profile">
@@ -38,12 +41,12 @@
         </div>
     </div>
 
+    <!-- Reader Container -->
     <div id="readerContainer" class="reader-container page-view">
-        
         <header class="top-bar">
             <button class="circle-menu-btn" id="menuBtn" onclick="toggleTopMenu()" title="Fitur & Navigasi"></button>PILIHAN ADA PADA DIRIMU
-            <span class="top-bar-title"></>
-            <span style="width: 18px;"></span> <!-- Spacing Seimbang -->
+            <span class="top-bar-title"></span>
+            <span style="width: 18px;"></span>
         </header>
         
         <div class="dropdown-overlay" id="overlay" onclick="toggleTopMenu()"></div>
@@ -73,7 +76,6 @@
         </div>
 
         <main class="content" id="textContent">
-            
             <article id="bab-1" class="chapter">
                 <h1>ASUMSI</h1>
                 <p><em>"Ngapain balikan? Itu sama aja seperti mengulang kesalahan yang sama."</em></p>
@@ -116,7 +118,6 @@
                 <span id="pageIndicator">BAB 1</span>
                 <button id="nextBtn" onclick="nextChapter()"> →</button>
             </div>
-
         </main>
     </div>
 
